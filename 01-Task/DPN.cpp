@@ -22,3 +22,23 @@ DPN::DPN(const DPN& other) : value(other.value) {
 DPN::~DPN() {
     delete[] this->divisors;
 }
+
+DPN& DPN::operator=(const DPN& other) {
+    if (this == &other)
+        return *this;
+
+    this->value = other.value;
+    delete[] this->divisors;
+    this->divisors = new unsigned int[other.divisors_size];
+    for (unsigned int i = 0; i < other.divisors_size; i++)
+        this->divisors[i] = other.divisors[i];
+
+    this->divisors_size = other.divisors_size;
+    this->is_sorted = other.is_sorted;
+
+    return *this;
+}
+
+DPN DPN::operator+(const DPN& other) const {
+    return DPN(this->value + other.value);
+}
