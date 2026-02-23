@@ -4,8 +4,8 @@
 class DPN {
 private:
     unsigned int value;
-    int* divisors;
-    int divisors_size;
+    unsigned int* divisors;
+    unsigned int divisors_size;
     bool is_sorted;
 
 public:
