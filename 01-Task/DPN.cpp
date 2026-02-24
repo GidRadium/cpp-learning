@@ -43,6 +43,20 @@ DPN DPN::operator+(const DPN& other) const {
     return DPN(this->value + other.value);
 }
 
+std::ostream& operator<<(std::ostream& os, const DPN& dpn) {
+    os << dpn.value << ":[";
+    for (unsigned int i = 0; i < dpn.divisors_size; ++i) {
+        if (i > 0)
+            os << ", ";
+
+        os << dpn.divisors[i];
+    }
+
+    os << "]";
+
+    return os;
+}
+
 void DPN::reinitialize() {
     delete[] divisors;
     this->divisors = new unsigned int[100];

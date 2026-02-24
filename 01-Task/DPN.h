@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 // Divided Positive Number
 class DPN {
 private:
@@ -15,6 +17,7 @@ public:
 
     DPN& operator=(const DPN& other);
     DPN operator+(const DPN& other) const;
+    friend std::ostream& operator<<(std::ostream& os, const DPN& dpn);
 
     void reinitialize();
     void change_divisor(unsigned int x, unsigned int y);
