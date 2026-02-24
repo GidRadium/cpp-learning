@@ -42,3 +42,26 @@ DPN& DPN::operator=(const DPN& other) {
 DPN DPN::operator+(const DPN& other) const {
     return DPN(this->value + other.value);
 }
+
+void DPN::reinitialize() {
+    delete[] divisors;
+    this->divisors = new unsigned int[100];
+    this->divisors_size = 0;
+    for (unsigned int i = 1; i <= this->value; i++)
+        if (this->value % i == 0)
+            this->divisors[this->divisors_size++] = i;
+
+    this->is_sorted = true;
+}
+
+void change_divisor(unsigned int x, unsigned int y) {
+
+}
+
+unsigned int gcd(const DPN& other) {
+    return 0;
+}
+
+unsigned int lcm(const DPN& other) {
+    return 0;
+}
