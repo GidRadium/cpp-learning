@@ -1,11 +1,22 @@
 #include "DPN.h"
 
 DPN::DPN(unsigned int value) : value(value) {
-    this->divisors = new unsigned int[100];
-    this->divisors_size = 0;
-    for (unsigned int i = 1; i <= value; i++)
-        if (value % i == 0)
-            this->divisors[this->divisors_size++] = i;
+    const unsigned int buffer_size = 100;
+    unsigned int *temp = new unsigned int[buffer_size];
+    unsigned int size_left = 0, size_right = 0;
+
+    for (unsigned int i = 1; i * i <= value; i++) {
+        if (value % i) continue;
+        temp[size_left++] = i;
+        if (i * i != value) temp[buffer_size - (++size_right)] = value / i;
+    }
+
+    this->divisors_size = size_left + size_right;
+    this->divisors = new unsigned int[this->divisors_size];
+    for (unsigned int i = 0; i < size_left; i++)
+        this->divisors[i] = temp[i];
+    for (unsigned int i = 0; i < size_right; i++)
+        this->divisors[size_left + i] = temp[buffer_size - size_right + i];
 
     this->is_sorted = true;
 }
