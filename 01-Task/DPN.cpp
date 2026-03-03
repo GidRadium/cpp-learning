@@ -1,12 +1,11 @@
 #include "DPN.h"
 #include <cstddef>
 
-const size_t DPN_BUFFER_SIZE = 100;
+constexpr size_t kDpnBufferSize = 100;
 
-uint64_t* get_new_sorted_divisiors_array(uint64_t value, size_t &new_size){
+uint64_t* GetNewSortedDivisiorsArray(uint64_t value, size_t &new_size) {
     new_size = 0;
-
-    uint64_t *temp = new uint64_t[DPN_BUFFER_SIZE];
+    uint64_t *temp = new uint64_t[kDpnBufferSize];
     for (size_t i = 2; i * i <= value; ++i) {
         while (value % i == 0) {
             temp[new_size] = i;
@@ -15,8 +14,9 @@ uint64_t* get_new_sorted_divisiors_array(uint64_t value, size_t &new_size){
         }
     }
 
-    if (value != 1)
+    if (value != 1) {
         temp[new_size++] = value;
+    }
 
     uint64_t* divisors = new uint64_t[new_size];
     for (size_t i = 0; i < new_size; ++i){
@@ -28,7 +28,7 @@ uint64_t* get_new_sorted_divisiors_array(uint64_t value, size_t &new_size){
     return divisors;
 }
 
-bool is_prime(uint64_t value) {
+bool IsPrime(uint64_t value) {
     if (value < 2) {
         return false;
     }
@@ -37,7 +37,7 @@ bool is_prime(uint64_t value) {
         return true;
     }
 
-    for (uint64_t i = 3; i * i <= value; i++){
+    for (uint64_t i = 3; i * i <= value; ++i){
         if (value % i == 0) {
             return false;
         }
@@ -57,7 +57,7 @@ DPN::DPN(uint64_t value,
 }
 
 DPN::DPN(uint64_t value) : value_(value) {
-    prime_divisors_ = get_new_sorted_divisiors_array(value, prime_divisors_size_);
+    prime_divisors_ = GetNewSortedDivisiorsArray(value, prime_divisors_size_);
     is_sorted_ = true;
 }
 
@@ -108,14 +108,14 @@ std::ostream& operator<<(std::ostream& os, const DPN& dpn) {
     return os;
 }
 
-void DPN::reinitialize() {
+void DPN::Reinitialize() {
     delete[] prime_divisors_;
 
-    prime_divisors_ = get_new_sorted_divisiors_array(value_, prime_divisors_size_);
+    prime_divisors_ = GetNewSortedDivisiorsArray(value_, prime_divisors_size_);
     is_sorted_ = true;
 }
 
-void DPN::change_divisor(uint64_t x, uint64_t y) {
+void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
     int x_index = -1;
     for (size_t i = 0; i < prime_divisors_size_; i++){
         if (prime_divisors_[i] == x) {
@@ -127,7 +127,7 @@ void DPN::change_divisor(uint64_t x, uint64_t y) {
         return;
     }
 
-    if (!is_prime(y) ||
+    if (!IsPrime(y) ||
         (x_index > 0 && prime_divisors_[x_index - 1] > y) ||
         (x_index + 1 < prime_divisors_size_ &&
          prime_divisors_[x_index + 1] < y)) {
@@ -138,11 +138,11 @@ void DPN::change_divisor(uint64_t x, uint64_t y) {
     prime_divisors_[x_index] = y;
 }
 
-DPN lcm_with_sorted(const DPN& a, const DPN& b) {
+DPN LcmWithSortedDPNs(const DPN& a, const DPN& b) {
     size_t i = 0;
     size_t j = 0;
     uint64_t result = 1;
-    uint64_t *temp = new uint64_t[DPN_BUFFER_SIZE];
+    uint64_t *temp = new uint64_t[kDpnBufferSize];
     size_t buffer_size_used = 0;
 
     while (i < a.prime_divisors_size_ && j < b.prime_divisors_size_) {
@@ -189,11 +189,11 @@ DPN lcm_with_sorted(const DPN& a, const DPN& b) {
     return DPN(result, divisors, buffer_size_used, true);
 }
 
-DPN gcd_with_sorted(const DPN& a, const DPN& b) {
+DPN GcdWithSortedDPNs(const DPN& a, const DPN& b) {
     size_t i = 0;
     size_t j = 0;
     uint64_t result = 1;
-    uint64_t *temp = new uint64_t[DPN_BUFFER_SIZE];
+    uint64_t *temp = new uint64_t[kDpnBufferSize];
     size_t buffer_size_used = 0;
 
     while (i < a.prime_divisors_size_ && j < b.prime_divisors_size_) {
@@ -222,40 +222,40 @@ DPN gcd_with_sorted(const DPN& a, const DPN& b) {
 
 DPN gcd(const DPN& a, const DPN& b) {
     if (a.is_sorted_ && b.is_sorted_) {
-        return gcd_with_sorted(a, b);
+        return GcdWithSortedDPNs(a, b);
     } else if (a.is_sorted_) {
         DPN b_new(b);
-        b_new.reinitialize();
-        return gcd_with_sorted(a, b_new);
+        b_new.Reinitialize();
+        return GcdWithSortedDPNs(a, b_new);
     } else if (b.is_sorted_) {
         DPN a_new(a);
-        a_new.reinitialize();
-        return gcd_with_sorted(a_new, b);
+        a_new.Reinitialize();
+        return GcdWithSortedDPNs(a_new, b);
     } else {
         DPN a_new(a);
         DPN b_new(b);
-        a_new.reinitialize();
-        b_new.reinitialize();
-        return gcd_with_sorted(a_new, b_new);
+        a_new.Reinitialize();
+        b_new.Reinitialize();
+        return GcdWithSortedDPNs(a_new, b_new);
     }
 }
 
 DPN lcm(const DPN& a, const DPN& b) {
     if (a.is_sorted_ && b.is_sorted_) {
-        return lcm_with_sorted(a, b);
+        return LcmWithSortedDPNs(a, b);
     } else if (a.is_sorted_) {
         DPN b_new(b);
-        b_new.reinitialize();
-        return lcm_with_sorted(a, b_new);
+        b_new.Reinitialize();
+        return LcmWithSortedDPNs(a, b_new);
     } else if (b.is_sorted_) {
         DPN a_new(a);
-        a_new.reinitialize();
-        return lcm_with_sorted(a_new, b);
+        a_new.Reinitialize();
+        return LcmWithSortedDPNs(a_new, b);
     } else {
         DPN a_new(a);
         DPN b_new(b);
-        a_new.reinitialize();
-        b_new.reinitialize();
-        return lcm_with_sorted(a_new, b_new);
+        a_new.Reinitialize();
+        b_new.Reinitialize();
+        return LcmWithSortedDPNs(a_new, b_new);
     }
 }
