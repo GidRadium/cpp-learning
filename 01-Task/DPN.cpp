@@ -7,7 +7,7 @@ uint64_t* get_new_sorted_divisiors_array(uint64_t value, size_t &new_size){
     new_size = 0;
 
     uint64_t *temp = new uint64_t[DPN_BUFFER_SIZE];
-    for (size_t i = 1; i * i <= value; ++i) {
+    for (size_t i = 2; i * i <= value; ++i) {
         while (value % i == 0) {
             temp[new_size] = i;
             ++new_size;
@@ -29,7 +29,15 @@ uint64_t* get_new_sorted_divisiors_array(uint64_t value, size_t &new_size){
 }
 
 bool is_prime(uint64_t value) {
-    for (uint64_t i = 1; i * i <= value; i++){
+    if (value < 2) {
+        return false;
+    }
+
+    if (value == 2) {
+        return true;
+    }
+
+    for (uint64_t i = 3; i * i <= value; i++){
         if (value % i == 0) {
             return false;
         }
@@ -120,9 +128,9 @@ void DPN::change_divisor(uint64_t x, uint64_t y) {
     }
 
     if (!is_prime(y) ||
-        (x_index > 0 && prime_divisors[x_index - 1] > x) ||
+        (x_index > 0 && prime_divisors[x_index - 1] > y) ||
         (x_index + 1 < prime_divisors_size &&
-         prime_divisors[x_index - 1] < x)) {
+         prime_divisors[x_index + 1] < y)) {
       is_sorted = false;
     }
 
