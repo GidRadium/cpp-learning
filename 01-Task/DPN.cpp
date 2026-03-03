@@ -5,6 +5,11 @@ constexpr size_t kDpnBufferSize = 100;
 
 uint64_t* GetNewSortedDivisiorsArray(uint64_t value, size_t &new_size) {
     new_size = 0;
+
+    if (value < 2) {
+        return nullptr;
+    }
+
     uint64_t *temp = new uint64_t[kDpnBufferSize];
     for (size_t i = 2; i * i <= value; ++i) {
         while (value % i == 0) {
@@ -37,7 +42,7 @@ bool IsPrime(uint64_t value) {
         return true;
     }
 
-    for (uint64_t i = 3; i * i <= value; ++i){
+    for (uint64_t i = 2; i * i <= value; ++i){
         if (value % i == 0) {
             return false;
         }
@@ -49,14 +54,15 @@ bool IsPrime(uint64_t value) {
 DPN::DPN(uint64_t value,
          uint64_t* prime_divisors,
          size_t prime_divisors_size,
-         bool is_sorted)
-    : value_(value),
-      prime_divisors_(prime_divisors),
-      prime_divisors_size_(prime_divisors_size),
-      is_sorted_(is_sorted) {
+         bool is_sorted):
+    value_(value),
+    prime_divisors_(prime_divisors),
+    prime_divisors_size_(prime_divisors_size),
+    is_sorted_(is_sorted) {
 }
 
 DPN::DPN(uint64_t value) : value_(value) {
+    prime_divisors_size_ = 0;
     prime_divisors_ = GetNewSortedDivisiorsArray(value, prime_divisors_size_);
     is_sorted_ = true;
 }
@@ -64,13 +70,21 @@ DPN::DPN(uint64_t value) : value_(value) {
 DPN::DPN(const DPN& other) : value_(other.value_) {
     prime_divisors_size_ = other.prime_divisors_size_;
     is_sorted_ = other.is_sorted_;
-    prime_divisors_ = new uint64_t[other.prime_divisors_size_];
-    for (size_t i = 0; i < other.prime_divisors_size_; ++i)
-        prime_divisors_[i] = other.prime_divisors_[i];
+
+    if (prime_divisors_size_ > 0) {
+        prime_divisors_ = new uint64_t[other.prime_divisors_size_];
+        for (size_t i = 0; i < other.prime_divisors_size_; ++i) {
+            prime_divisors_[i] = other.prime_divisors_[i];
+        }
+    } else {
+        prime_divisors_ = nullptr;
+    }
 }
 
 DPN::~DPN() {
-    delete[] prime_divisors_;
+    if (prime_divisors_ != nullptr) {
+        delete[] prime_divisors_;
+    }
 }
 
 DPN& DPN::operator=(const DPN& other) {
@@ -78,10 +92,17 @@ DPN& DPN::operator=(const DPN& other) {
         return *this;
 
     value_ = other.value_;
-    delete[] prime_divisors_;
-    prime_divisors_ = new uint64_t[other.prime_divisors_size_];
-    for (size_t i = 0; i < other.prime_divisors_size_; ++i)
-        prime_divisors_[i] = other.prime_divisors_[i];
+    if (prime_divisors_ != nullptr) {
+        delete[] prime_divisors_;
+        prime_divisors_ = nullptr;
+    }
+
+    if (other.prime_divisors_size_ > 0) {
+        prime_divisors_ = new uint64_t[other.prime_divisors_size_];
+        for (size_t i = 0; i < other.prime_divisors_size_; ++i) {
+            prime_divisors_[i] = other.prime_divisors_[i];
+        }
+    }
 
     prime_divisors_size_ = other.prime_divisors_size_;
     is_sorted_ = other.is_sorted_;
@@ -109,13 +130,19 @@ std::ostream& operator<<(std::ostream& os, const DPN& dpn) {
 }
 
 void DPN::Reinitialize() {
-    delete[] prime_divisors_;
+    if (prime_divisors_ != nullptr) {
+        delete[] prime_divisors_;
+    }
 
     prime_divisors_ = GetNewSortedDivisiorsArray(value_, prime_divisors_size_);
     is_sorted_ = true;
 }
 
 void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
+    if (prime_divisors_ == nullptr) {
+        return;
+    }
+
     int x_index = -1;
     for (size_t i = 0; i < prime_divisors_size_; i++){
         if (prime_divisors_[i] == x) {
@@ -138,7 +165,59 @@ void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
     prime_divisors_[x_index] = y;
 }
 
+// gcd(1, 0) = 1, gcd(1, a) = 1, gcd(0, 0) = UINT64_MAX, gcd(0, a) = a
+DPN GcdWithSortedDPNs(const DPN& a, const DPN& b) {
+    if (a.value_ == 1 || b.value_ == 1) {
+        return DPN(1);
+    } else if (a.value_ == 0 && b.value_ == 0) {
+        return DPN(UINT64_MAX);
+    } else if (a.value_ == 0) {
+        return DPN(b);
+    } else if (b.value_ == 0) {
+        return DPN(a);
+    }
+
+    size_t i = 0;
+    size_t j = 0;
+    uint64_t result = 1;
+    uint64_t *temp = new uint64_t[kDpnBufferSize];
+    size_t buffer_size_used = 0;
+
+    while (i < a.prime_divisors_size_ && j < b.prime_divisors_size_) {
+        if (a.prime_divisors_[i] < b.prime_divisors_[j]) {
+            ++i;
+        } else if (a.prime_divisors_[i] > b.prime_divisors_[j]) {
+            ++j;
+        } else {
+            result *= a.prime_divisors_[i];
+            temp[buffer_size_used] = a.prime_divisors_[i];
+            ++buffer_size_used;
+            ++i;
+            ++j;
+        }
+    }
+
+    uint64_t* divisors = new uint64_t[buffer_size_used];
+    for (size_t i = 0; i < buffer_size_used; ++i){
+        divisors[i] = temp[i];
+    }
+
+    delete[] temp;
+
+    return DPN(result, divisors, buffer_size_used, true);
+}
+
+// lcm(0, a) = 0, lcm(1, a) = a, lcm(0, 1) = 0
 DPN LcmWithSortedDPNs(const DPN& a, const DPN& b) {
+
+    if (a.value_ == 0 || b.value_ == 0) {
+        return DPN(0);
+    } else if (a.value_ == 1) {
+        return DPN(b);
+    } else if (b.value_ == 1) {
+        return DPN(a);
+    }
+
     size_t i = 0;
     size_t j = 0;
     uint64_t result = 1;
@@ -189,37 +268,7 @@ DPN LcmWithSortedDPNs(const DPN& a, const DPN& b) {
     return DPN(result, divisors, buffer_size_used, true);
 }
 
-DPN GcdWithSortedDPNs(const DPN& a, const DPN& b) {
-    size_t i = 0;
-    size_t j = 0;
-    uint64_t result = 1;
-    uint64_t *temp = new uint64_t[kDpnBufferSize];
-    size_t buffer_size_used = 0;
-
-    while (i < a.prime_divisors_size_ && j < b.prime_divisors_size_) {
-        if (a.prime_divisors_[i] < b.prime_divisors_[j]) {
-            ++i;
-        } else if (a.prime_divisors_[i] > b.prime_divisors_[j]) {
-            ++j;
-        } else {
-            result *= a.prime_divisors_[i];
-            temp[buffer_size_used] = a.prime_divisors_[i];
-            ++buffer_size_used;
-            ++i;
-            ++j;
-        }
-    }
-
-    uint64_t* divisors = new uint64_t[buffer_size_used];
-    for (size_t i = 0; i < buffer_size_used; ++i){
-        divisors[i] = temp[i];
-    }
-
-    delete[] temp;
-
-    return DPN(result, divisors, buffer_size_used, true);
-}
-
+// gcd(1, 0) = 1, gcd(1, a) = 1, gcd(0, 0) = UINT64_MAX, gcd(0, a) = a
 DPN gcd(const DPN& a, const DPN& b) {
     if (a.is_sorted_ && b.is_sorted_) {
         return GcdWithSortedDPNs(a, b);
@@ -240,6 +289,7 @@ DPN gcd(const DPN& a, const DPN& b) {
     }
 }
 
+// lcm(0, a) = 0, lcm(1, a) = a, lcm(0, 1) = 0
 DPN lcm(const DPN& a, const DPN& b) {
     if (a.is_sorted_ && b.is_sorted_) {
         return LcmWithSortedDPNs(a, b);
