@@ -42,4 +42,22 @@ int main() {
     std::cout << "c = " << c << std::endl;
     std::cout << "gcd(" << c << ", " << a << ") = " << gcd(c, a) << std::endl;
     std::cout << "lcm(" << c << ", " << a << ") = " << lcm(c, a) << std::endl;
+
+    DPN d = DPN(2 * 2 * 2 * 3 * 3 * 3 * 5 * 5);
+    std::cout << "d = " << d << std::endl;
+    d.ChangeDivisor(2, 3);
+    std::cout << "d = " << d << std::endl;
+    d.ChangeDivisor(5, 1);
+    std::cout << "d = " << d << std::endl;
+    d.ChangeDivisor(1, 1);
+    std::cout << "d = " << d << std::endl;
+    d.ChangeDivisor(1, 0);
+    std::cout << "d = " << d << std::endl;
+    d.ChangeDivisor(0, 20);
+    std::cout << "d = " << d << std::endl;
+    d.Reinitialize();
+    std::cout << "d = " << d << std::endl;
+
+    DPN e = d + a;
+    std::cout << "e = " << e << std::endl;
 }

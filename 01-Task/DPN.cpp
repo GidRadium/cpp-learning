@@ -139,7 +139,7 @@ void DPN::Reinitialize() {
 }
 
 void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
-    if (prime_divisors_ == nullptr) {
+    if (prime_divisors_ == nullptr || x == y || y == 0) {
         return;
     }
 
