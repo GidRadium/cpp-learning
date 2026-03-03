@@ -6,10 +6,10 @@
 // Divided Positive Number
 class DPN {
 private:
-    uint64_t value;
-    uint64_t* prime_divisors;
-    size_t prime_divisors_size;
-    bool is_sorted;
+    uint64_t value_;
+    uint64_t* prime_divisors_;
+    size_t prime_divisors_size_;
+    bool is_sorted_;
 
     DPN(uint64_t value, uint64_t* prime_divisors, size_t prime_divisors_size, bool is_sorted);
     friend DPN lcm_with_sorted(const DPN& a, const DPN& b);
