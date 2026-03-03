@@ -58,18 +58,18 @@ DPN::DPN(uint64_t value,
     value_(value),
     prime_divisors_(prime_divisors),
     prime_divisors_size_(prime_divisors_size),
-    is_sorted_(is_sorted) {
+    is_correct_(is_sorted) {
 }
 
 DPN::DPN(uint64_t value) : value_(value) {
     prime_divisors_size_ = 0;
     prime_divisors_ = GetNewSortedDivisiorsArray(value, prime_divisors_size_);
-    is_sorted_ = true;
+    is_correct_ = true;
 }
 
 DPN::DPN(const DPN& other) : value_(other.value_) {
     prime_divisors_size_ = other.prime_divisors_size_;
-    is_sorted_ = other.is_sorted_;
+    is_correct_ = other.is_correct_;
 
     if (prime_divisors_size_ > 0) {
         prime_divisors_ = new uint64_t[other.prime_divisors_size_];
@@ -105,7 +105,7 @@ DPN& DPN::operator=(const DPN& other) {
     }
 
     prime_divisors_size_ = other.prime_divisors_size_;
-    is_sorted_ = other.is_sorted_;
+    is_correct_ = other.is_correct_;
 
     return *this;
 }
@@ -135,7 +135,7 @@ void DPN::Reinitialize() {
     }
 
     prime_divisors_ = GetNewSortedDivisiorsArray(value_, prime_divisors_size_);
-    is_sorted_ = true;
+    is_correct_ = true;
 }
 
 void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
@@ -158,7 +158,7 @@ void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
         (x_index > 0 && prime_divisors_[x_index - 1] > y) ||
         (x_index + 1 < prime_divisors_size_ &&
          prime_divisors_[x_index + 1] < y)) {
-      is_sorted_ = false;
+      is_correct_ = false;
     }
 
     value_ = (value_ / x) * y;
@@ -166,7 +166,7 @@ void DPN::ChangeDivisor(uint64_t x, uint64_t y) {
 }
 
 // gcd(1, 0) = 1, gcd(1, a) = 1, gcd(0, 0) = UINT64_MAX, gcd(0, a) = a
-DPN GcdWithSortedDPNs(const DPN& a, const DPN& b) {
+DPN GcdWithCorrectDPNs(const DPN& a, const DPN& b) {
     if (a.value_ == 1 || b.value_ == 1) {
         return DPN(1);
     } else if (a.value_ == 0 && b.value_ == 0) {
@@ -208,7 +208,7 @@ DPN GcdWithSortedDPNs(const DPN& a, const DPN& b) {
 }
 
 // lcm(0, a) = 0, lcm(1, a) = a, lcm(0, 1) = 0
-DPN LcmWithSortedDPNs(const DPN& a, const DPN& b) {
+DPN LcmWithCorrectDPNs(const DPN& a, const DPN& b) {
 
     if (a.value_ == 0 || b.value_ == 0) {
         return DPN(0);
@@ -268,44 +268,42 @@ DPN LcmWithSortedDPNs(const DPN& a, const DPN& b) {
     return DPN(result, divisors, buffer_size_used, true);
 }
 
-// gcd(1, 0) = 1, gcd(1, a) = 1, gcd(0, 0) = UINT64_MAX, gcd(0, a) = a
 DPN gcd(const DPN& a, const DPN& b) {
-    if (a.is_sorted_ && b.is_sorted_) {
-        return GcdWithSortedDPNs(a, b);
-    } else if (a.is_sorted_) {
+    if (a.is_correct_ && b.is_correct_) {
+        return GcdWithCorrectDPNs(a, b);
+    } else if (a.is_correct_) {
         DPN b_new(b);
         b_new.Reinitialize();
-        return GcdWithSortedDPNs(a, b_new);
-    } else if (b.is_sorted_) {
+        return GcdWithCorrectDPNs(a, b_new);
+    } else if (b.is_correct_) {
         DPN a_new(a);
         a_new.Reinitialize();
-        return GcdWithSortedDPNs(a_new, b);
+        return GcdWithCorrectDPNs(a_new, b);
     } else {
         DPN a_new(a);
         DPN b_new(b);
         a_new.Reinitialize();
         b_new.Reinitialize();
-        return GcdWithSortedDPNs(a_new, b_new);
+        return GcdWithCorrectDPNs(a_new, b_new);
     }
 }
 
-// lcm(0, a) = 0, lcm(1, a) = a, lcm(0, 1) = 0
 DPN lcm(const DPN& a, const DPN& b) {
-    if (a.is_sorted_ && b.is_sorted_) {
-        return LcmWithSortedDPNs(a, b);
-    } else if (a.is_sorted_) {
+    if (a.is_correct_ && b.is_correct_) {
+        return LcmWithCorrectDPNs(a, b);
+    } else if (a.is_correct_) {
         DPN b_new(b);
         b_new.Reinitialize();
-        return LcmWithSortedDPNs(a, b_new);
-    } else if (b.is_sorted_) {
+        return LcmWithCorrectDPNs(a, b_new);
+    } else if (b.is_correct_) {
         DPN a_new(a);
         a_new.Reinitialize();
-        return LcmWithSortedDPNs(a_new, b);
+        return LcmWithCorrectDPNs(a_new, b);
     } else {
         DPN a_new(a);
         DPN b_new(b);
         a_new.Reinitialize();
         b_new.Reinitialize();
-        return LcmWithSortedDPNs(a_new, b_new);
+        return LcmWithCorrectDPNs(a_new, b_new);
     }
 }
