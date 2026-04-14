@@ -3,7 +3,7 @@
 
 constexpr size_t kDpnBufferSize = 100;
 
-uint64_t* GetNewSortedDivisiorsArray(uint64_t value, size_t &new_size) {
+uint64_t* GetSortedDivisiorsArray(uint64_t value, size_t &new_size) {
   new_size = 0;
 
   if (value < 2) {
@@ -20,7 +20,8 @@ uint64_t* GetNewSortedDivisiorsArray(uint64_t value, size_t &new_size) {
   }
 
   if (value != 1) {
-    temp[new_size++] = value;
+    temp[new_size] = value;
+    ++new_size;
   }
 
   uint64_t* divisors = new uint64_t[new_size];
@@ -63,7 +64,7 @@ DPN::DPN(uint64_t value,
 
 DPN::DPN(uint64_t value) : value_(value) {
   prime_divisors_size_ = 0;
-  prime_divisors_ = GetNewSortedDivisiorsArray(value, prime_divisors_size_);
+  prime_divisors_ = GetSortedDivisiorsArray(value, prime_divisors_size_);
   is_correct_ = true;
 }
 
@@ -134,7 +135,7 @@ void DPN::Reinitialize() {
     delete[] prime_divisors_;
   }
 
-  prime_divisors_ = GetNewSortedDivisiorsArray(value_, prime_divisors_size_);
+  prime_divisors_ = GetSortedDivisiorsArray(value_, prime_divisors_size_);
   is_correct_ = true;
 }
 
@@ -196,7 +197,7 @@ DPN GcdWithCorrectDPNs(const DPN& a, const DPN& b) {
       ++j;
       }
   }
-
+  // trim to size
   uint64_t* divisors = new uint64_t[buffer_size_used];
   for (size_t i = 0; i < buffer_size_used; ++i){
     divisors[i] = temp[i];
